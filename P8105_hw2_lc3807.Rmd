@@ -5,8 +5,77 @@ date: "`r Sys.Date()`"
 output: github_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+## problem 0
+
+```{r library}
+library(tidyverse)
+library(readxl)
 ```
+
+
+## problem 1
+
+```{r}
+# creat dataframe of month
+month_df = 
+  tibble(
+    month_num = 1:12,
+    month_abb = month.abb,
+    month = month.name
+  )
+
+#import data frame and clean it as follow
+pols = 
+  read_csv("./data/fivethirtyeight_datasets/pols-month.csv") |>
+  separate(mon, into = c("year", "month_num", "day"), convert = TRUE) |>
+  mutate(
+    president = recode(prez_gop, "0" = "dem", "1" = "gop", "2" = "gop")) |>
+  left_join(x = _, y = month_df) |> 
+  select(year, month, everything(), -day, -starts_with("prez")) 
+```
+
+First, clean the data in pols-month.csv, which shows how many national politicians are now affiliated with either the Democratic Party or the Republican Party. There are several instances where `prez_gop` equals `2`; these are the months in which Ford took office after Nixon resigned. We code these as `gop` (the same as values when `prez_gop` is `1`) in the new `president` variable established as part of our data cleansing.
+
+```{r clean_538_snp}
+snp = 
+  read_csv(
+    "./data/fivethirtyeight_datasets/snp.csv",
+    col_types = cols(date = col_date(format = "%m/%d/%y"))) |>
+  separate(date, into = c("year", "month_num", "day"), convert = TRUE) |>
+  mutate(
+    year = if_else(year > 2023, year - 100, year)) |> 
+  left_join(x = _, y = month_df) |> 
+  select(year, month, close) 
+```
+
+Second, we also clean the 538 `snp` data, which contains information related to Standard & Poor’s stock market index.
+
+```{r clean_538_unemp}
+unemployment = 
+  read_csv("./data/fivethirtyeight_datasets/unemployment.csv") |>
+  rename(year = Year) |>
+  pivot_longer(
+    Jan:Dec, 
+    names_to = "month_abb",
+    values_to = "unemployment"
+  ) |> 
+  left_join(x = _, y = month_df) |> 
+  select(year, month, unemployment)
+```
+
+Finally, we tidy the `unemployment` data so that it can be merged with the previous datasets.
+
+```{r merge_538}
+data_538 = 
+  left_join(pols, snp) |>
+  left_join(x = _, y = unemployment)
+
+str(data_538)
+```
+
+We merge the three datasets!
+
+The 'pols' data contains `r nrow(pols)` observations and `r ncol(pols)` variables, and it provides information on the distribution of party identification (Democrat or Republican) among governors and senators for a certain year from years.The`snp`data consists of `r nrow(snp)` observations and `r ncol(snp)` variables, which range from years to months.The `unemployment` data includes `r nrow(unemployment)` observations and `r ncol(unemployment)` variables with a range of years.
+
 
 
