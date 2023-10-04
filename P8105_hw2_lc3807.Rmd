@@ -5,6 +5,7 @@ date: "`r Sys.Date()`"
 output: github_document
 ---
 
+
 ## problem 0
 
 ```{r library}
@@ -77,5 +78,64 @@ We merge the three datasets!
 
 The 'pols' data contains `r nrow(pols)` observations and `r ncol(pols)` variables, and it provides information on the distribution of party identification (Democrat or Republican) among governors and senators for a certain year from years.The`snp`data consists of `r nrow(snp)` observations and `r ncol(snp)` variables, which range from years to months.The `unemployment` data includes `r nrow(unemployment)` observations and `r ncol(unemployment)` variables with a range of years.
 
+## Problem 2
+
+```{r clean Mr.Trash Wheel dataset}
+
+mr_trash_wheel_df = 
+  read_excel("./data/202309 Trash Wheel Collection Data.xlsx",
+             sheet = "Mr. Trash Wheel",
+             range = "A2:N587",
+             na = c("", "NA", "N/A")
+             ) |> 
+  janitor::clean_names() |> 
+  mutate(homes_powered = weight_tons * 500 / 30, 
+         trash_wheel_type = "Mr. Trash Wheel"
+         ) |> 
+  select(trash_wheel_type, everything())
+
+
+mr_trash_wheel_df
+```
+
+```{r clean Professor Trash Wheel dataset}
+
+prof_trash_df = 
+  read_excel(
+    "./data/202309 Trash Wheel Collection Data.xlsx",
+    sheet = "Professor Trash Wheel",
+    range = "A2:M109",
+    na = c("", "NA", "N/A")
+    ) |> 
+  janitor::clean_names() |> 
+  mutate(
+    homes_powered = weight_tons * 500 / 30,
+    trash_wheel_type = "Professor Trash Wheel"
+    ) |> 
+  select(trash_wheel_type, everything())
+  
+
+prof_trash_df
+```
+
+
+```{r clean Gwynnda Trash Wheel dataset}
+
+gwynnda_trash_df = 
+  read_excel(
+    "./data/202309 Trash Wheel Collection Data.xlsx",
+    sheet = "Gwynnda Trash Wheel",
+    range = "A2:L159",
+    na = c("", "NA", "N/A")
+    ) |> 
+  janitor::clean_names() |> 
+  mutate(
+    homes_powered = weight_tons * 500 / 30,
+    trash_wheel_type = "Gwynnda Trash Wheel"
+    ) |> 
+  select(trash_wheel_type, everything())
+
+gwynnda_trash_df
+```
 
 
