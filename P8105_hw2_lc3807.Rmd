@@ -270,8 +270,7 @@ only_amyloid_id = mci_amyloid_df |>
 # combine two datasets together
 combined_dataframe = inner_join(mci_at_baseline_df, mci_amyloid_df, by = "id")
 ```
-There are totally `r nrow(unique_baseline_participants)` participants only appear in baseline dataset : participants with id `r only_baseline_id`.
-There are totally `r nrow(unique_amyloid_participants)/5` participants only appear in amyloid dataset : participants with id `r only_amyloid_id`. 
+Only participants with the id `r only_baseline_id` exist in the baseline dataset, totaling `r nrow(unique_baseline_participants)`.Only participants with the id `r only_amyloid_id` present in the amyloid dataset, totaling `r nrow(unique_amyloid_participants)/5`. 
 There are `r nrow(combined_dataframe)/5` participants present in both datasets; each participant has 5 rows of data (baseline to 8th year), hence there are `r nrow(combined_dataframe)` rows total in the combined dataset. The variables are `r ncol(combined_dataframe)`. 
 
 ```{r}
