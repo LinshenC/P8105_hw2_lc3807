@@ -105,7 +105,6 @@ mr_trash_wheel_df =
          )|> 
   select(trash_wheel_type, everything())
 
-mr_trash_wheel_df
 ```
 Second, I import Professor Trash Wheel sheet from excel and omit non-data entries.
 
@@ -128,7 +127,6 @@ prof_trash_df =
     ) |> 
   select(trash_wheel_type, everything())
   
-prof_trash_df
 ```
 
 Third, I import Gwynnda Trash Wheel sheet from excel and omit non-data entries.
@@ -152,7 +150,6 @@ gwynnda_trash_df =
     ) |> 
   select(trash_wheel_type, everything())
 
-gwynnda_trash_df
 ```
 
 Finally, we merge all three dateframes above and calculate total weight of trash collected by Professor Trash Wheel and the total number of cigarette butts collected by Gwynnda in July of 2021.
@@ -160,8 +157,6 @@ Finally, we merge all three dateframes above and calculate total weight of trash
 ```{r combine three sheets}
 # merge all three dataframes 
 data_all = bind_rows(mr_trash_wheel_df, prof_trash_df, gwynnda_trash_df) 
-
-data_all
 
 # calculate total weight of trash collected by Professor Trash Wheel
 total_prof_trash_weight = data_all |> 
@@ -200,14 +195,12 @@ mci_baseline_df =
     sex = ifelse(sex == 1, "male", "female"),
     apoe4 = ifelse(apoe4 == 1, "carrier", "non-carrier" )
          ) 
-mci_baseline_df
 
 # remove the participants who don't meet the stated inclusion criteria
 mci_at_baseline_df = mci_baseline_df |>
   mutate(age_at_onset = ifelse(age_at_onset == '.', NA, age_at_onset)) |> 
   filter(current_age < age_at_onset | is.na(age_at_onset))
 
-mci_at_baseline_df
 
 
 # calculate for the average baseline age
