@@ -187,19 +187,24 @@ The `mr_trash_wheel_df` data has `r nrow(mr_trash_wheel_df)` observations and `r
 First,import, clean, and tidy the dataset of baseline demographics and remove any participants who do not meet the stated inclusion criteria.
 
 ```{r mci_baseline}
-
+# load the dataset
 mci_baseline_df = 
   read_csv("./data/data_mci/MCI_baseline.csv", 
            skip = 1) |>
+  
+#clean data
   janitor::clean_names() |> 
+  
+#encode sex and APOE4 carrier status
   mutate(
     sex = ifelse(sex == 1, "male", "female"),
     apoe4 = ifelse(apoe4 == 1, "carrier", "non-carrier" )
          ) 
 mci_baseline_df
 
-mci_at_baseline_df = 
-  filter(mci_baseline_df, current_age < age_at_onset | is.na(age_at_onset))
+# remove the participants who don't meet the stated inclusion criteria
+mci_at_baseline_df = mci_baseline_df |>
+  filter(current_age < age_at_onset | is.na(age_at_onset))
 
 mci_at_baseline_df
 
@@ -207,6 +212,69 @@ mci_at_baseline_df
 # calculate for the average baseline age
 base_mean_age_mci = mean(pull(mci_at_baseline_df, current_age))
 
+#calculate the proportion
+n_carrier_female = mci_at_baseline_df |> 
+  filter(sex == 'female') |> 
+  filter(apoe4 == 'carrier') |> 
+  count()
 
+n_female = mci_baseline_df |> 
+  filter(sex == 'female') |> 
+  count()
+
+proportion = n_carrier_female/n_female
+```
+
+The first row must be skipped throughout the import procedure because our dataset does not require remarks.Based on notes, Sex == 0 represents the participant is female. apoe4 == 0 represents the participant is non-carrier. Then we use mutate funtion to ensure that sex and APOE4 carrier status are appropriate encoded (i.e. not numeric) according to notes. We also use filter function to remove any participants who do not meet the stated inclusion criteria. It means you need to remove any N/A value in variable `age at onset` variable by using filter function. There are `r nrow(mci_baseline_df)` participants were recruited, `r nrow(mci_at_baseline_df)` develop MCI. The average baseline age is `r base_mean_age_mci`. The proportion of women in the study are APOE4 carriers is `r proportion`.
+
+
+First, Import, clean, and tidy the dataset of longitudinally observed biomarker values.
+
+```{r}
+# load the amyloid dataset
+mci_amyloid_df = read.csv('./data/data_mci/mci_amyloid.csv', skip = 1) |> 
+  janitor::clean_names()
+
+mci_amyloid_df = mci_amyloid_df |> 
+  rename(id = study_id,
+         second_year = time_2,
+         fourth_year = time_4,
+         sixth_year = time_6,
+         eighth_year = time_8) |> 
+  pivot_longer(
+    baseline:eighth_year,
+    names_to = "time",
+    values_to = "value"
+    )
+
+```
+We still don't require notes in this dataset, so we skip the first row. The study_id and time variables are changed to id and years. To make the dataset easier to understand by clearly displaying time and value, we use pivot_longer() function. The dateset has some NA values, which indicates that certain ratio values are missing. There are `r nrow(mci_amyloid_df)` observations and `r ncol(mci_amyloid_df)` variables. The dateframe contains important variables like id, year, and value once the dataset has been cleaned and organized. 
+
+Second, check whether some participants appear in only the baseline or amyloid datasets and combine the demographic and biomarker datasets so that only participants who appear in both datasets are retained.
+
+```{r}
+#Check participants appearing in only baseline or amyloid datasets
+unique_baseline_participants = anti_join(mci_at_baseline_df, mci_amyloid_df,by = "id")
+
+unique_amyloid_participants = anti_join(mci_amyloid_df, mci_at_baseline_df, by = "id")
+
+only_baseline_id = mci_at_baseline_df |> 
+  pull(id) |> 
+  setdiff(mci_amyloid_df |> pull(id))
+
+only_amyloid_id = mci_amyloid_df |> 
+  pull(id) |> 
+  setdiff(mci_at_baseline_df |> pull(id))
+
+# combine two datasets together
+combined_dataframe = inner_join(mci_at_baseline_df, mci_amyloid_df, by = "id")
+```
+There are totally `r nrow(unique_baseline_participants)` participants only appear in baseline dataset : participants with id `r only_baseline_id`.
+There are totally `r nrow(unique_amyloid_participants)/5` participants only appear in amyloid dataset : participants with id `r only_amyloid_id`. 
+There are `r nrow(combined_dataframe)/5` participants present in both datasets; each participant has 5 rows of data (baseline to 8th year), hence there are `r nrow(combined_dataframe)` rows total in the combined dataset. The variables are `r ncol(combined_dataframe)`. 
+
+```{r}
+# export the result as a CSV to your data directory
+write.csv(combined_dataframe, file = "./data/data_mci/combined_dataset.csv", row.names = T)
 ```
 
